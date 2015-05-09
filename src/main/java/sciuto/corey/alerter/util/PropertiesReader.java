@@ -12,7 +12,7 @@ public class PropertiesReader {
 	public static Logger LOGGER = LogManager.getLogger();
 
 	/**
-	 * Reads in the specified file. If there's a problem retrieving it, returns null.
+	 * Reads in the specified file. If there's a problem retrieving it, it returns an empty Properties list.
 	 * @param fileName
 	 * @return
 	 */
