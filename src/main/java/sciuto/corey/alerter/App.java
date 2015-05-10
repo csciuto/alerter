@@ -86,6 +86,12 @@ public class App {
 			LOGGER.error("Error processing messages", e);
 		}
 		
+		try {
+			inboxFolder.close(false);
+		} catch (MessagingException e) {
+			LOGGER.error("Error closing folder", e);
+		}
+		
 		LOGGER.info("Shutdown.");
 	}
 }

@@ -23,7 +23,7 @@
       <AppenderRef ref="File" />
     </Logger>
 
-    <Root level="debug">
+    <Root level="WARN">
       <AppenderRef ref="STDOUT"/>
       <AppenderRef ref="File"/>
     </Root>
