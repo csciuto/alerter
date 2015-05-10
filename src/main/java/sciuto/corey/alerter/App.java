@@ -6,15 +6,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import javax.mail.MessagingException;
-import javax.mail.NoSuchProviderException;
-import javax.mail.Session;
-import javax.mail.Store;
+import javax.mail.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import sciuto.corey.alerter.mail.PropertiesFileAuthenticator;
+import sciuto.corey.alerter.util.MessageProcessor;
 import sciuto.corey.alerter.util.PropertiesReader;
 
 /**
@@ -71,7 +69,22 @@ public class App {
 			LOGGER.error("Could not connect to the mail server!");
 			System.exit(4);
 		}
-		// Yey.
+		
+		Folder inboxFolder=null;
+		try {
+			inboxFolder = store.getFolder("INBOX");
+			inboxFolder.open(Folder.READ_WRITE);
+		} catch (MessagingException e) {
+			LOGGER.error("Error opening folder. Exiting...");
+			System.exit(5);
+		}
+
+		MessageProcessor messageProcessor = new MessageProcessor();
+		try {
+			messageProcessor.processMessages(inboxFolder);
+		} catch (MessagingException e) {
+			LOGGER.error("Error processing messages", e);
+		}
 		
 		LOGGER.info("Shutdown.");
 	}
