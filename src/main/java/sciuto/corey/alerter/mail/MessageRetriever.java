@@ -100,9 +100,9 @@ public class MessageRetriever {
 				if (validSender == true) {
 					unreadMessages.add(message);
 				} else {
-					LOGGER.info("Invalid sender. Deleting message.");
+					LOGGER.debug("Invalid sender. Marking message as read.");
 					message.setFlag(Flag.SEEN, true);
-					message.setFlag(Flag.DELETED, true);
+					// message.setFlag(Flag.DELETED, true); Overkill.
 				}
 			}
 		}
