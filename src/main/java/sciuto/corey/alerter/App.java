@@ -27,7 +27,7 @@ public class App {
 		Properties applicationProperties = PropertiesReader.readFromFile(alerterProps);
 		if (applicationProperties.size() == 0) {
 			LOGGER.error("Could not load properties from " + applicationProperties + ". exiting...");
-			System.exit(1);
+			System.exit(2);
 		}
 
 
