@@ -1,18 +1,17 @@
 package sciuto.corey.alerter;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
-import javax.mail.*;
+import javax.mail.Message;
+import javax.mail.MessagingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import sciuto.corey.alerter.mail.PropertiesFileAuthenticator;
-import sciuto.corey.alerter.util.MessageProcessor;
+import sciuto.corey.alerter.mail.MessageParser;
+import sciuto.corey.alerter.mail.MessageRetriever;
+import sciuto.corey.alerter.mail.ProcessedMessage;
 import sciuto.corey.alerter.util.PropertiesReader;
 
 /**
@@ -30,68 +29,60 @@ public class App {
 
 	public static void main(String[] args) {
 		LOGGER.info("Starting application...");
-		String versionInformationProp = PropertiesReader.read("version.properties").getProperty("alerter.version");
+		String versionInformationProp = PropertiesReader.readFromClasspath("version.properties").getProperty(
+				"alerter.version");
 		LOGGER.info("Build information: " + versionInformationProp);
 		LOGGER.debug("Properties:" + System.getProperties());
 
 		String alerterProps = args[0];
-
-		InputStream propertiesFile = null;
-		Properties mailProperties = null;
-		try {
-			propertiesFile = new FileInputStream(new File(alerterProps));
-			mailProperties = new Properties();
-			mailProperties.load(propertiesFile);
-
-			if (mailProperties.size() == 0) {
-				LOGGER.error(alerterProps + " did not contain any properties. Exiting...");
-				System.exit(1);
-			}
-		} catch (IOException e) {
-			LOGGER.error(alerterProps + " could not be opened. Exiting...");
-			System.exit(2);
+		Properties applicationProperties = PropertiesReader.readFromFile(alerterProps);
+		if (applicationProperties.size() == 0) {
+			LOGGER.error("Could not load properties from " + applicationProperties + ". exiting...");
+			System.exit(1);
 		}
 
-		PropertiesFileAuthenticator authenticator = new PropertiesFileAuthenticator(mailProperties);
-		Session mailSession = Session.getInstance(mailProperties, authenticator);
-		
-		Store store = null;
-		try {
-			store = mailSession.getStore();
-		} catch (NoSuchProviderException e) {
-			LOGGER.error("Could not find default Store. Check your properties file! Exiting...");
-			System.exit(3);
-		}
-		
-		try {
-			store.connect();
-		} catch (MessagingException e) {
-			LOGGER.error("Could not connect to the mail server!");
-			System.exit(4);
-		}
-		
-		Folder inboxFolder=null;
-		try {
-			inboxFolder = store.getFolder("INBOX");
-			inboxFolder.open(Folder.READ_WRITE);
-		} catch (MessagingException e) {
-			LOGGER.error("Error opening folder. Exiting...");
-			System.exit(5);
-		}
+		List<ProcessedMessage> processedMessages = getMessages(applicationProperties);
 
-		MessageProcessor messageProcessor = new MessageProcessor();
-		try {
-			messageProcessor.processMessages(inboxFolder);
-		} catch (MessagingException e) {
-			LOGGER.error("Error processing messages", e);
-		}
-		
-		try {
-			inboxFolder.close(false);
-		} catch (MessagingException e) {
-			LOGGER.error("Error closing folder", e);
-		}
-		
 		LOGGER.info("Shutdown.");
+	}
+
+	private static List<ProcessedMessage> getMessages(Properties applicationProperties) {
+
+		List<ProcessedMessage> processedMessages = null;
+		
+		MessageRetriever messageRetriever = new MessageRetriever(applicationProperties);
+
+		try {
+			messageRetriever.openFolder();
+		} catch (MessagingException e1) {
+			LOGGER.error("Could not open folder exiting...", e1);
+			System.exit(101);
+		}
+
+		List<Message> messages = null;
+		try {
+			messages = messageRetriever.retrieveUnreadMessages();
+			LOGGER.info("There are " + messages.size() + " unread messages.");
+		} catch (MessagingException e) {
+			LOGGER.error("Could not retrieve messages from INBOX. exiting...");
+			System.exit(102);
+		}
+
+		MessageParser messageParser = new MessageParser();
+		try {
+			processedMessages = messageParser.extractMessages(messages);
+		} catch (MessagingException e1) {
+			LOGGER.error("Could not extract messages! exiting...", e1);
+			System.exit(103);
+		}
+
+		try {
+			messageRetriever.closeFolder();
+		} catch (MessagingException e) {
+			LOGGER.error("Could not close folder! exiting...", e);
+			System.exit(104);
+		}
+
+		return processedMessages;
 	}
 }
