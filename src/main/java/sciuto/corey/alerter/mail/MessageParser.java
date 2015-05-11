@@ -13,6 +13,11 @@ import javax.mail.internet.MimeBodyPart;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Extracts the Message Subject, Body, and attachments (PDF only) from Messages and stores them locally.
+ * @author Corey
+ *
+ */
 public class MessageParser {
 
 	private static final Logger LOGGER = LogManager.getLogger();

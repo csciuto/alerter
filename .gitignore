@@ -2,3 +2,4 @@ target/
 logs/
 buildNumber.properties
 alerter.properties
+alerts/
