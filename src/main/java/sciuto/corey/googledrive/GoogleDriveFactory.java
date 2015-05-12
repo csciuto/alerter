@@ -1,5 +1,3 @@
-package sciuto.corey.googledrive;
-
 /*
  * Borrows liberally from a sample at 
  * https://github.com/google/google-api-java-client-samples/blob/master/
@@ -18,6 +16,7 @@ package sciuto.corey.googledrive;
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+package sciuto.corey.googledrive;
 
 import java.io.File;
 import java.io.FileReader;
