@@ -22,7 +22,7 @@ package sciuto.corey.googledrive;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
 
 import com.google.api.client.auth.oauth2.Credential;
@@ -34,79 +34,61 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.store.DataStoreFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 
 /**
- * A sample application that runs multiple requests against the Drive API. The
- * requests this sample makes are:
- * <ul>
- * <li>Does a resumable media upload</li>
- * <li>Updates the uploaded file by renaming it</li>
- * <li>Does a resumable media download</li>
- * <li>Does a direct media upload</li>
- * <li>Does a direct media download</li>
- * </ul>
+ * 
+ * Creates connections to Google Drive
  * 
  * @author rmistry@google.com (Ravi Mistry)
+ * @author Corey
+ * 
  */
-public class GoogleDrive {
+public class GoogleDriveFactory {
 
-	/**
-	 * Global instance of the {@link DataStoreFactory}. The best practice is to
-	 * make it a single globally shared instance across your application.
-	 */
 	private static FileDataStoreFactory dataStoreFactory;
-
-	/** Global instance of the HTTP transport. */
 	private static HttpTransport httpTransport;
-
-	/** Global instance of the JSON factory. */
 	private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
-	/** Global Drive API client. */
-	private static Drive drive;
+	/**
+	 * Authorizes the installed application to access user's protected data.
+	 * 
+	 * @throws IOException
+	 * */
+	private static Credential authorize(String secretsLocation) throws IOException {
 
-	/** Authorizes the installed application to access user's protected data. */
-	private static Credential authorize(String secretsLocation) throws Exception {
-		// load client secrets
 		GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new FileReader(secretsLocation));
-		// set up authorization code flow
 		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport, JSON_FACTORY,
 				clientSecrets, Collections.singleton(DriveScopes.DRIVE_FILE)).setDataStoreFactory(dataStoreFactory)
 				.build();
-		// authorize
-		
+
 		return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
 	}
 
 	/**
-	 * Creates the Google Drive client. Pass in the pointer to clients_secret.json. 
+	 * Creates the Google Drive client. Pass in the pointer to
+	 * clients_secret.json.
+	 * 
 	 * @see https://developers.google.com/identity/protocols/OAuth2
-	 *
+	 * 
 	 * @param secretsLocation
+	 * @return
+	 * @throws IOException
 	 */
-	public GoogleDrive(String secretsLocation) {
-		try {
-			httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-			
-			File dataStoreDirectory = new File("dataStore/");
-			dataStoreDirectory.mkdir();
-			dataStoreFactory = new FileDataStoreFactory(dataStoreDirectory);
-			
-			// authorization
-			Credential credential = authorize(secretsLocation);
-			// set up the global Drive instance
-			drive = new Drive.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName("CoreySciuto-Alerter/0.1")
-					.build();
-			return;
-		} catch (IOException e) {
-			System.err.println(e.getMessage());
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-		System.exit(1);
+	public Drive createDrive(String secretsLocation) throws IOException {
+		Credential credential = authorize(secretsLocation);
+		Drive drive = new Drive.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(
+				"CoreySciuto-Alerter/0.1").build();
+		return drive;
+	}
+
+	public GoogleDriveFactory() throws GeneralSecurityException, IOException {
+		httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+
+		File dataStoreDirectory = new File("dataStore/");
+		dataStoreDirectory.mkdir();
+		dataStoreFactory = new FileDataStoreFactory(dataStoreDirectory);
 	}
 }

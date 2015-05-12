@@ -1,5 +1,7 @@
 package sciuto.corey.alerter;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Properties;
 
@@ -12,6 +14,9 @@ import org.apache.logging.log4j.Logger;
 import sciuto.corey.alerter.mail.MessageParser;
 import sciuto.corey.alerter.mail.MessageRetriever;
 import sciuto.corey.alerter.mail.ProcessedMessage;
+import sciuto.corey.googledrive.GoogleDriveFactory;
+
+import com.google.api.services.drive.Drive;
 
 /**
  * This is the main execution thread.
@@ -24,11 +29,13 @@ public class ProcessingRunnable implements Runnable {
 	private final static Logger LOGGER = LogManager.getLogger();
 
 	private Properties applicationProperties;
+	private Drive googleDrive;
 
 	private static final long MINUTE = 1000L * 60l; // 1000 milliseconds x 60 seconds
 	
 	public ProcessingRunnable(Properties applicationProperties) {
 		this.applicationProperties = applicationProperties;
+		configureDrive(applicationProperties);
 	}
 
 	@Override
@@ -91,6 +98,30 @@ public class ProcessingRunnable implements Runnable {
 		}
 
 		return processedMessages;
+	}
+
+	/**
+	 * Configures the internal instance of the Google Drive client.
+	 * @param applicationProperties
+	 */
+	private void configureDrive(Properties applicationProperties) {
+		GoogleDriveFactory googleDriveFactory = null;
+		try {
+			googleDriveFactory = new GoogleDriveFactory();
+		} catch (GeneralSecurityException e) {
+			LOGGER.error("Error creating Google Drive instance. Exiting...",e);
+			System.exit(200);
+		} catch (IOException e) {
+			LOGGER.error("Error creating Google Drive instance. Exiting...",e);
+			System.exit(201);
+		}
+		String secretsLocation = applicationProperties.getProperty("drive.secrets.location");
+		try {
+			googleDrive = googleDriveFactory.createDrive(secretsLocation);
+		} catch (IOException e) {
+			LOGGER.error("Error creating Google Drive instance. Exiting...",e);
+			System.exit(202);
+		}
 	}
 
 }

@@ -6,7 +6,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import sciuto.corey.alerter.util.PropertiesReader;
-import sciuto.corey.googledrive.GoogleDrive;
 
 public class App {
 	private final static Logger LOGGER;
@@ -31,10 +30,6 @@ public class App {
 			System.exit(2);
 		}
 
-
-		GoogleDrive googleDrive = new GoogleDrive(applicationProperties.getProperty("drive.secrets.location"));
-		
-		/*
 		Thread processingThread = new Thread(new ProcessingRunnable(applicationProperties), "ProcessingThread");
 		processingThread.start();
 		
@@ -43,7 +38,6 @@ public class App {
 		} catch (InterruptedException e) {
 			LOGGER.warn("Thread interrupted.",e);
 		}
-		*/
 		
 		LOGGER.info("Shutdown.");
 	}
