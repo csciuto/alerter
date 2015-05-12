@@ -15,6 +15,7 @@ package sciuto.corey.alerter;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -43,9 +44,11 @@ public class ProcessingRunnable implements Runnable {
 
 	private Properties applicationProperties;
 	private Drive googleDrive;
+	private String rootDriveFolderId;
 
-	private static final long MINUTE = 1000L * 60l; // 1000 milliseconds x 60 seconds
-	
+	private static final long MINUTE = 1000L * 60l; // 1000 milliseconds x 60
+													// seconds
+
 	public ProcessingRunnable(Properties applicationProperties) {
 		this.applicationProperties = applicationProperties;
 		configureDrive(applicationProperties);
@@ -56,9 +59,9 @@ public class ProcessingRunnable implements Runnable {
 		boolean running = true;
 		while (running) {
 			LOGGER.info("Running...");
-			
+
 			List<ProcessedMessage> messages = getMessages();
-			
+
 			LOGGER.info("...Sleeping...");
 			try {
 				Thread.sleep(5 * MINUTE);
@@ -70,7 +73,9 @@ public class ProcessingRunnable implements Runnable {
 	}
 
 	/**
-	 * Downloads all new messages and their attachments. Returns information about each message in a List.
+	 * Downloads all new messages and their attachments. Returns information
+	 * about each message in a List.
+	 * 
 	 * @return
 	 */
 	private List<ProcessedMessage> getMessages() {
@@ -115,6 +120,7 @@ public class ProcessingRunnable implements Runnable {
 
 	/**
 	 * Configures the internal instance of the Google Drive client.
+	 * 
 	 * @param applicationProperties
 	 */
 	private void configureDrive(Properties applicationProperties) {
@@ -122,19 +128,69 @@ public class ProcessingRunnable implements Runnable {
 		try {
 			googleDriveFactory = new GoogleDriveFactory();
 		} catch (GeneralSecurityException e) {
-			LOGGER.error("Error creating Google Drive instance. Exiting...",e);
+			LOGGER.error("Error creating Google Drive instance. Exiting...", e);
 			System.exit(200);
 		} catch (IOException e) {
-			LOGGER.error("Error creating Google Drive instance. Exiting...",e);
+			LOGGER.error("Error creating Google Drive instance. Exiting...", e);
 			System.exit(201);
 		}
+
 		String secretsLocation = applicationProperties.getProperty("drive.secrets.location");
 		try {
 			googleDrive = googleDriveFactory.createDrive(secretsLocation);
 		} catch (IOException e) {
-			LOGGER.error("Error creating Google Drive instance. Exiting...",e);
+			LOGGER.error("Error creating Google Drive instance. Exiting...", e);
 			System.exit(202);
+		}
+
+		try {
+			createRootFolder();
+		} catch (IOException e) {
+			LOGGER.error("Error creating Google Drive root folder. Exiting...",e);
+			System.exit(203);
 		}
 	}
 
+	/**
+	 * Creates a directory called "alerts" at the root of the hierarchy.
+	 * @throws IOException
+	 */
+	private void createRootFolder() throws IOException {
+		com.google.api.services.drive.Drive.Files.List listRequest = googleDrive.files().list();
+		listRequest.setQ("trashed=false");
+		List<com.google.api.services.drive.model.File> files = listRequest.execute().getItems();
+
+		com.google.api.services.drive.model.File rootDirectory = null;
+		
+		boolean found = false;
+		for (com.google.api.services.drive.model.File file : files) {
+			if (file.getTitle().equals("alerts")) {
+				found = true;
+				rootDirectory = file;
+				break;
+			}
+		}
+
+		if (!found) {
+			LOGGER.debug("Creating root Drive folder...");
+
+			com.google.api.services.drive.model.File rootDirectoryCreate = new com.google.api.services.drive.model.File();
+			rootDirectoryCreate.setTitle("alerts");
+			rootDirectoryCreate.setMimeType("application/vnd.google-apps.folder");
+			
+			rootDirectory = googleDrive.files().insert(rootDirectoryCreate).execute();
+			LOGGER.debug("...done");
+			
+			LOGGER.debug("Setting permissions...");
+			com.google.api.services.drive.model.Permission allRead = new com.google.api.services.drive.model.Permission();
+			allRead.setType("anyone");
+			allRead.setRole("reader");
+			googleDrive.permissions().insert(rootDirectory.getId(), allRead).execute();
+			LOGGER.debug("...done");
+		}
+		
+		rootDriveFolderId = rootDirectory.getId();		
+		LOGGER.debug("Root Drive Folder ID: " + rootDriveFolderId);
+		
+	}
 }
