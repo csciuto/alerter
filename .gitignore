@@ -3,3 +3,5 @@ logs/
 buildNumber.properties
 alerter.properties
 alerts/
+dataStore/
+client_secrets.json
