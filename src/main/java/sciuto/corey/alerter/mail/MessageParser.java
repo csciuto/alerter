@@ -48,8 +48,10 @@ public class MessageParser {
 			LOGGER.debug("Content type: " + contentType);
 
 			if (contentType.contains("multipart/mixed")) {
-				ProcessedMessage processedMessage = processMultiPartMessage(message);
-				processedMessage.setSubject(messageSubject);
+				ProcessedMessage processedMessage = processMultiPartMixedMessage(message);
+				processedMessages.add(processedMessage);
+			}  else if (contentType.contains("multipart/alternative")) {
+				ProcessedMessage processedMessage = processMultiPartAlternativeMessage(message);
 				processedMessages.add(processedMessage);
 			} else {
 				LOGGER.debug("Not handling contentType of " + contentType);
@@ -64,14 +66,37 @@ public class MessageParser {
 
 		return processedMessages;
 	}
-
+	
 	/**
-	 * Extracts any attachments (so far, only of type PDF). <br />
-	 * Returns a list of PDF file names, the message subject, and the body.
+	 * Returns a message subject and body from a message.
 	 * @param message
 	 * @return
 	 */
-	private ProcessedMessage processMultiPartMessage(Message message) {
+	private ProcessedMessage processMultiPartAlternativeMessage(Message message) {
+		ProcessedMessage processedMessage = new ProcessedMessage();
+
+		try {
+			Multipart mp = (Multipart) message.getContent();
+			String text = processMultiPartAlternativeBodyPart( mp );
+			processedMessage.setMessageBody(text);
+			processedMessage.setSubject(message.getSubject());
+			return processedMessage;
+		} catch (IOException e) {
+			LOGGER.error("Error getting message content:", e);
+			return null;
+		} catch (MessagingException e) {
+			LOGGER.error("Couldn't process message", e);
+			return null;
+		}
+	}
+
+	/**
+	 * Extracts any attachments (so far, only of type PDF). <br />
+	 * Returns a list of PDF file names and the subject and body.
+	 * @param message
+	 * @return
+	 */
+	private ProcessedMessage processMultiPartMixedMessage(Message message) {
 
 		UUID uuid = UUID.randomUUID();
 		ProcessedMessage processedMessage = new ProcessedMessage();
@@ -104,13 +129,14 @@ public class MessageParser {
 
 					LOGGER.debug("Extracting Body...");
 					MimeBodyPart mbp = (MimeBodyPart) bp;
-					String text = processSubMultipartAlternative(mbp);
+					String text = processMultiPartAlternativeBodyPart( (Multipart) mbp.getContent() );
 					processedMessage.setMessageBody(text);
 					LOGGER.debug("...extracted.");
 
 				}
 			}
 
+			processedMessage.setSubject(message.getSubject());
 			return processedMessage;
 
 		} catch (IOException e) {
@@ -125,27 +151,26 @@ public class MessageParser {
 
 	/**
 	 * Return the text/plain value found in this MimeBodyPart
-	 * @param mbp The body part to extract from.
+	 * @param mp The body part to extract from.
 	 * @return
 	 * @throws IOException
 	 * @throws MessagingException
 	 */
-	private String processSubMultipartAlternative(MimeBodyPart mbp) throws IOException, MessagingException {
+	private String processMultiPartAlternativeBodyPart(Multipart mp) throws IOException, MessagingException {
 
-		Multipart mp = (Multipart) mbp.getContent();
 		int numBodyParts = mp.getCount();
 
 		for (int i = 0; i < numBodyParts; i++) {
 			BodyPart bp = mp.getBodyPart(i);
 			String bodyPartContentType = bp.getContentType();
-			LOGGER.debug("-- Alternative Body part is of type " + bodyPartContentType);
+			LOGGER.debug("Alternative Body part is of type " + bodyPartContentType);
 
 			if (bodyPartContentType.contains("text/plain")) {
-				LOGGER.debug("-- Extracting Text...");
+				LOGGER.debug("Extracting Text...");
 
 				MimeBodyPart mbp2 = (MimeBodyPart) bp;
 				String text = (String)mbp2.getContent();
-				LOGGER.debug("-- ...extracted.");
+				LOGGER.debug("...extracted.");
 
 				return text;
 			} 
