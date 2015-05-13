@@ -133,7 +133,17 @@ public class MessageParser {
 					mbp.saveFile(fileName);
 					LOGGER.debug("...extracted.");
 
-					processedMessage.addFileName(fileName);
+					processedMessage.addAttachment(fileName, "application/pdf");
+
+				} else if (bodyPartContentType.contains("application/msword")) {
+
+					LOGGER.debug("Extracting Word Document...");
+					MimeBodyPart mbp = (MimeBodyPart) bp;
+					String fileName = directory.getAbsolutePath() + "/" + bodyPartFileName;
+					mbp.saveFile(fileName);
+					LOGGER.debug("...extracted.");
+
+					processedMessage.addAttachment(fileName, "application/msword");
 
 				} else if (bodyPartContentType.contains("multipart/alternative")) {
 

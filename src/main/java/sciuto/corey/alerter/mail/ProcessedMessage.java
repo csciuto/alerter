@@ -18,15 +18,23 @@ import java.util.List;
 
 public class ProcessedMessage {
 
-	private List<String> fileNames = new ArrayList<String>();
+	private List<Attachment> attachments = new ArrayList<Attachment>();
 	private String messageBodyFileName;
 	private String subject;
 	
-	public void addFileName(String fileName) {
-		fileNames.add(fileName);
+	public void addAttachment(String fileName, String mimeType) {
+		Attachment attachment = new Attachment();
+		attachment.setFileLocation(fileName);
+		attachment.setMimeType(mimeType);
+		attachments.add(attachment);
 	}
-	public List<String> getFileNames() {
-		return fileNames;
+	
+	public void addAttachment(Attachment attachment) {
+		attachments.add(attachment);
+	}
+	
+	public List<Attachment> getAttachments() {
+		return attachments;
 	}
 	public String getMessageBodyFileName() {
 		return messageBodyFileName;
