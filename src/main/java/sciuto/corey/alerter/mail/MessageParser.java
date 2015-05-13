@@ -129,10 +129,11 @@ public class MessageParser {
 
 					LOGGER.debug("Extracting PDF...");
 					MimeBodyPart mbp = (MimeBodyPart) bp;
-					mbp.saveFile(directory.getAbsolutePath() + "/" +  bodyPartFileName);
+					String fileName = directory.getAbsolutePath() + "/" + bodyPartFileName;
+					mbp.saveFile(fileName);
 					LOGGER.debug("...extracted.");
 
-					processedMessage.addFileName(bodyPartFileName);
+					processedMessage.addFileName(fileName);
 
 				} else if (bodyPartContentType.contains("multipart/alternative")) {
 

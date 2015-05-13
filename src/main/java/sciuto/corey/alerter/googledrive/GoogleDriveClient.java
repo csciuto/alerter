@@ -72,6 +72,11 @@ public class GoogleDriveClient {
 		
 	}
 
+	/**
+	 * Uploads the ProcessedMessages to Google Drive. Creates a directory with the message's subject as a name, and uploads all files to it.
+	 * @param messages
+	 * @throws IOException
+	 */
 	public void uploadMessages(List<ProcessedMessage> messages) throws IOException {
 		
 		for (ProcessedMessage message : messages) {
@@ -87,25 +92,43 @@ public class GoogleDriveClient {
 			LOGGER.debug("...done");
 			
 			LOGGER.debug("Creating message body file...");
-			
-			ParentReference messageDirectoryReference = new ParentReference();
-			messageDirectoryReference.setId(messageDirectory.getId());
-			List<ParentReference> messageDirectoryReferenceList = Collections.singletonList(messageDirectoryReference);
-			
-			com.google.api.services.drive.model.File descriptionFile = new com.google.api.services.drive.model.File();
-			descriptionFile.setParents(messageDirectoryReferenceList);
-			descriptionFile.setTitle("Description");
-			
-			java.io.File messageBodyFile = new java.io.File(message.getMessageBodyFileName());
-			
-			com.google.api.client.http.FileContent mediaContent = new com.google.api.client.http.FileContent("text/plain", messageBodyFile);
-
-		    googleDrive.files().insert(descriptionFile, mediaContent).execute();
-		    
+			createFile(messageDirectory, message.getMessageBodyFileName(), "text/plain");
 		    LOGGER.debug("...done");
+		    
+		    List<String> fileNames = message.getFileNames();
+		    if (fileNames != null){
+		    	for (String fileName : fileNames) {
+		    		LOGGER.debug("Creating attachment...");
+		    		// TODO: This assumes the attachment is a PDF.
+		    		createFile(messageDirectory, fileName, "application/pdf");
+		    		LOGGER.debug("...done");
+		    	}
+		    }
 			
 		}
 		
+	}
+	
+	/**
+	 * Uploads the file identified by fileLocation of type mimeType to the directory parentDirectory
+	 * @param parentDirectory
+	 * @param fileLocation
+	 * @param mimeType
+	 * @throws IOException 
+	 */
+	private void createFile(com.google.api.services.drive.model.File parentDirectory, String fileLocation, String mimeType) throws IOException {
+		ParentReference messageDirectoryReference = new ParentReference();
+		messageDirectoryReference.setId(parentDirectory.getId());
+		List<ParentReference> messageDirectoryReferenceList = Collections.singletonList(messageDirectoryReference);
+		
+		com.google.api.services.drive.model.File descriptionFile = new com.google.api.services.drive.model.File();
+		descriptionFile.setParents(messageDirectoryReferenceList);
+		
+		java.io.File messageBodyFile = new java.io.File(fileLocation);
+		
+		com.google.api.client.http.FileContent mediaContent = new com.google.api.client.http.FileContent(mimeType, messageBodyFile);
+
+	    googleDrive.files().insert(descriptionFile, mediaContent).execute();
 	}
 	
 }
