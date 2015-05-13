@@ -19,7 +19,7 @@ import java.util.List;
 public class ProcessedMessage {
 
 	private List<String> fileNames = new ArrayList<String>();
-	private String messageBody;
+	private String messageBodyFileName;
 	private String subject;
 	
 	public void addFileName(String fileName) {
@@ -28,11 +28,11 @@ public class ProcessedMessage {
 	public List<String> getFileNames() {
 		return fileNames;
 	}
-	public String getMessageBody() {
-		return messageBody;
+	public String getMessageBodyFileName() {
+		return messageBodyFileName;
 	}
-	public void setMessageBody(String messageBody) {
-		this.messageBody = messageBody;
+	public void setMessageBodyFileName(String messageBodyFileName) {
+		this.messageBodyFileName = messageBodyFileName;
 	}
 	public String getSubject() {
 		return subject;

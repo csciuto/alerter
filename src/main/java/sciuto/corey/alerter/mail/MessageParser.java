@@ -14,6 +14,7 @@
 package sciuto.corey.alerter.mail;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,10 +76,19 @@ public class MessageParser {
 	private ProcessedMessage processMultiPartAlternativeMessage(Message message) {
 		ProcessedMessage processedMessage = new ProcessedMessage();
 
+		File directory = createDirectory();
+		
 		try {
 			Multipart mp = (Multipart) message.getContent();
 			String text = processMultiPartAlternativeBodyPart( mp );
-			processedMessage.setMessageBody(text);
+			
+			String fileName = directory.getAbsolutePath() + "/" + "messageBody.txt";
+			FileOutputStream fos = new FileOutputStream(fileName);
+			fos.write(text.getBytes());
+			fos.close();
+			
+			processedMessage.setMessageBodyFileName(fileName);
+			
 			processedMessage.setSubject(message.getSubject());
 			return processedMessage;
 		} catch (IOException e) {
@@ -98,7 +108,8 @@ public class MessageParser {
 	 */
 	private ProcessedMessage processMultiPartMixedMessage(Message message) {
 
-		UUID uuid = UUID.randomUUID();
+		File directory = createDirectory();
+		
 		ProcessedMessage processedMessage = new ProcessedMessage();
 
 		try {
@@ -117,8 +128,6 @@ public class MessageParser {
 				if (bodyPartContentType.contains("application/pdf")) {
 
 					LOGGER.debug("Extracting PDF...");
-					File directory = new File("alerts/" + uuid.toString());
-					directory.mkdirs();
 					MimeBodyPart mbp = (MimeBodyPart) bp;
 					mbp.saveFile(directory.getAbsolutePath() + "/" +  bodyPartFileName);
 					LOGGER.debug("...extracted.");
@@ -128,9 +137,16 @@ public class MessageParser {
 				} else if (bodyPartContentType.contains("multipart/alternative")) {
 
 					LOGGER.debug("Extracting Body...");
+
 					MimeBodyPart mbp = (MimeBodyPart) bp;
 					String text = processMultiPartAlternativeBodyPart( (Multipart) mbp.getContent() );
-					processedMessage.setMessageBody(text);
+					
+					String fileName = directory.getAbsolutePath() + "/" + "messageBody.txt";
+					FileOutputStream fos = new FileOutputStream(fileName);
+					fos.write(text.getBytes());
+					fos.close();
+					
+					processedMessage.setMessageBodyFileName(fileName);
 					LOGGER.debug("...extracted.");
 
 				}
@@ -177,5 +193,13 @@ public class MessageParser {
 		}
 		return "<No Body>";
 
+	}
+
+	private File createDirectory() {
+		UUID uuid = UUID.randomUUID();
+		File directory = new File("alerts/" + uuid.toString());
+		directory.mkdirs();
+		
+		return directory;
 	}
 }
