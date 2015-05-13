@@ -137,6 +137,8 @@ public class GoogleDriveClient {
 		
 		com.google.api.services.drive.model.File descriptionFile = new com.google.api.services.drive.model.File();
 		descriptionFile.setParents(messageDirectoryReferenceList);
+		String fileName = fileLocation.substring(fileLocation.lastIndexOf("/")+1, fileLocation.length());
+		descriptionFile.setTitle(fileName);
 		
 		java.io.File messageBodyFile = new java.io.File(fileLocation);
 		
