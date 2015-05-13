@@ -81,7 +81,7 @@ public class GoogleDriveClient {
 		
 		for (ProcessedMessage message : messages) {
 			
-			LOGGER.debug("Creating message folder...");
+			LOGGER.debug("Creating message folder " + message.getSubject());
 
 			com.google.api.services.drive.model.File directoryCreate = new com.google.api.services.drive.model.File();
 			directoryCreate.setTitle(message.getSubject());
@@ -91,14 +91,16 @@ public class GoogleDriveClient {
 			com.google.api.services.drive.model.File messageDirectory = googleDrive.files().insert(directoryCreate).execute();
 			LOGGER.debug("...done");
 			
-			LOGGER.debug("Creating message body file...");
-			createFile(messageDirectory, message.getMessageBodyFileName(), "text/plain");
-		    LOGGER.debug("...done");
+			if (message.getMessageBodyFileName() != null) {
+				LOGGER.debug("Creating message body file " + message.getMessageBodyFileName());
+				createFile(messageDirectory, message.getMessageBodyFileName(), "text/plain");
+			    LOGGER.debug("...done");
+			}
 		    
 		    List<String> fileNames = message.getFileNames();
 		    if (fileNames != null){
 		    	for (String fileName : fileNames) {
-		    		LOGGER.debug("Creating attachment...");
+		    		LOGGER.debug("Creating attachment " + fileName);
 		    		// TODO: This assumes the attachment is a PDF.
 		    		createFile(messageDirectory, fileName, "application/pdf");
 		    		LOGGER.debug("...done");
