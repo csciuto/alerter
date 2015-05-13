@@ -60,6 +60,11 @@ public class ProcessingRunnable implements Runnable {
 			LOGGER.info("Running...");
 
 			List<ProcessedMessage> messages = getMessages();
+			try {
+				googleDriveClient.uploadMessages(messages);
+			} catch (IOException e1) {
+				LOGGER.error("Couldn't upload messages!",e1);
+			}
 
 			LOGGER.info("...Sleeping...");
 			try {

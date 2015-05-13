@@ -1,19 +1,23 @@
 package sciuto.corey.alerter.googledrive;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import sciuto.corey.alerter.mail.ProcessedMessage;
+
 import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.model.ParentReference;
 
 public class GoogleDriveClient {
 
 	private final static Logger LOGGER = LogManager.getLogger();
 	
 	private Drive googleDrive;
-	private String rootDriveFolderId;
+	private List<ParentReference> rootDirectoryReferenceList;
 	
 	public GoogleDriveClient(Drive googleDrive) {
 		this.googleDrive = googleDrive; 
@@ -57,8 +61,28 @@ public class GoogleDriveClient {
 			LOGGER.debug("...done");
 		}
 		
-		rootDriveFolderId = rootDirectory.getId();		
-		LOGGER.debug("Root Drive Folder ID: " + rootDriveFolderId);
+		rootDirectoryReferenceList = new ArrayList<ParentReference>();
+		ParentReference rootDirectoryReference = new ParentReference();
+		rootDirectoryReference.setId(rootDirectory.getId());
+		rootDirectoryReferenceList.add(rootDirectoryReference);
+		
+		LOGGER.debug("Root Drive Folder ID: " + rootDirectory.getId());
+		
+	}
+
+	public void uploadMessages(List<ProcessedMessage> messages) throws IOException {
+		
+		for (ProcessedMessage message : messages) {
+			LOGGER.debug("Creating message folder...");
+
+			com.google.api.services.drive.model.File directoryCreate = new com.google.api.services.drive.model.File();
+			directoryCreate.setTitle(message.getSubject());
+			directoryCreate.setMimeType("application/vnd.google-apps.folder");
+			directoryCreate.setParents(rootDirectoryReferenceList);
+			
+			com.google.api.services.drive.model.File messageDirectory = googleDrive.files().insert(directoryCreate).execute();
+			LOGGER.debug("...done");
+		}
 		
 	}
 	
