@@ -15,6 +15,7 @@ package sciuto.corey.alerter;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -59,11 +60,13 @@ public class ProcessingRunnable implements Runnable {
 		while (running) {
 			LOGGER.info("Running...");
 
-			List<ProcessedMessage> messages = getMessages();
 			try {
-				googleDriveClient.uploadMessages(messages, rootDirectoryId);
-			} catch (IOException e1) {
-				LOGGER.error("Couldn't upload messages!",e1);
+				List<ProcessedMessage> messages = getMessages();
+				if (messages != null && messages.size() > 0) {
+					googleDriveClient.uploadMessages(messages, rootDirectoryId);
+				}
+			} catch (Exception e1) {
+				LOGGER.error("Couldn't upload messages!", e1);
 			}
 
 			LOGGER.info("...Sleeping...");
@@ -83,7 +86,7 @@ public class ProcessingRunnable implements Runnable {
 	 * @return The ID of the root directory.
 	 */
 	private String configureDrive(Properties applicationProperties) {
-	
+
 		String secretsLocation = applicationProperties.getProperty("drive.secrets.location");
 		try {
 			IDriveWrapper googleDrive = GoogleDriveFactory.createDrive(secretsLocation);
@@ -92,20 +95,21 @@ public class ProcessingRunnable implements Runnable {
 			LOGGER.error("Error creating Google Drive instance. Exiting...", e);
 			System.exit(202);
 		}
-	
+
 		try {
 			return googleDriveClient.createRootFolder("alerts");
 		} catch (IOException e) {
-			LOGGER.error("Error creating Google Drive root folder. Exiting...",e);
+			LOGGER.error("Error creating Google Drive root folder. Exiting...", e);
 			System.exit(203);
 		}
-		
+
 		return null; // You can't actually get here...
 	}
 
 	/**
 	 * Downloads all new messages and their attachments. Returns information
-	 * about each message in a List.
+	 * about each message in a List. Returns null if the messages can't be
+	 * retrieved.
 	 * 
 	 * @return
 	 */
@@ -117,37 +121,33 @@ public class ProcessingRunnable implements Runnable {
 
 		try {
 			messageRetriever.openFolder();
-		} catch (MessagingException e1) {
-			LOGGER.error("Could not open folder exiting...", e1);
-			System.exit(101);
-		}
-
-		List<Message> messages = null;
-		try {
-			messages = messageRetriever.retrieveUnreadMessages();
-			LOGGER.info("There are " + messages.size() + " unread messages.");
 		} catch (MessagingException e) {
-			LOGGER.error("Could not retrieve messages from INBOX. exiting...");
-			System.exit(102);
+			LOGGER.error("Could not open folder!", e);
+			return null;
 		}
 
-		MessageParser messageParser = new MessageParser();
 		try {
-			processedMessages = messageParser.extractMessages(messages);
-		} catch (MessagingException e1) {
-			LOGGER.error("Could not extract messages! exiting...", e1);
-			System.exit(103);
+			List<Message> messages = messageRetriever.retrieveUnreadMessages();
+			LOGGER.info("There are " + messages.size() + " unread messages.");
+
+			if (messages.size() > 0) {
+				MessageParser messageParser = new MessageParser();
+				processedMessages = messageParser.extractMessages(messages);
+			} else {
+				processedMessages = new ArrayList<ProcessedMessage>();
+			}
+		} catch (MessagingException e) {
+			LOGGER.error("Error retrieving messages!", e);
 		}
 
 		try {
 			messageRetriever.closeFolder();
 		} catch (MessagingException e) {
-			LOGGER.error("Could not close folder! exiting...", e);
-			System.exit(104);
+			LOGGER.error("Could not close folder!", e);
+			return null;
 		}
 
 		return processedMessages;
 	}
-
 
 }
