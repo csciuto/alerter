@@ -29,7 +29,7 @@ import sciuto.corey.alerter.drive.IDriveWrapper;
 import sciuto.corey.alerter.drive.google.GoogleDriveFactory;
 import sciuto.corey.alerter.mail.MessageParser;
 import sciuto.corey.alerter.mail.MessageRetriever;
-import sciuto.corey.alerter.mail.ProcessedMessage;
+import sciuto.corey.alerter.model.ProcessedMessage;
 
 /**
  * This is the main execution thread.

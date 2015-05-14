@@ -27,6 +27,8 @@ import javax.mail.internet.MimeBodyPart;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import sciuto.corey.alerter.model.ProcessedMessage;
+
 /**
  * Extracts the Message Subject, Body, and attachments (PDF only) from Messages and stores them locally.
  * @author Corey

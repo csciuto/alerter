@@ -19,8 +19,8 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import sciuto.corey.alerter.mail.Attachment;
-import sciuto.corey.alerter.mail.ProcessedMessage;
+import sciuto.corey.alerter.model.Attachment;
+import sciuto.corey.alerter.model.ProcessedMessage;
 
 /**
  * A client around an abstract Drive class.

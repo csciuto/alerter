@@ -15,7 +15,7 @@ package sciuto.corey.alerter.drive;
 
 import java.io.IOException;
 
-import sciuto.corey.alerter.mail.ProcessedMessage;
+import sciuto.corey.alerter.model.ProcessedMessage;
 
 /**
  * An interface specifying operations on a cloud drive service.

@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 
 import sciuto.corey.alerter.drive.IDriveWrapper;
-import sciuto.corey.alerter.mail.ProcessedMessage;
+import sciuto.corey.alerter.model.ProcessedMessage;
 
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.ParentReference;

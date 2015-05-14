@@ -9,8 +9,8 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import sciuto.corey.alerter.mail.Attachment;
-import sciuto.corey.alerter.mail.ProcessedMessage;
+import sciuto.corey.alerter.model.Attachment;
+import sciuto.corey.alerter.model.ProcessedMessage;
 
 public class DriveClientUnitTest {
 	
