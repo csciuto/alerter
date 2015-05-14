@@ -24,13 +24,12 @@ import javax.mail.MessagingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import sciuto.corey.alerter.googledrive.GoogleDriveClient;
-import sciuto.corey.alerter.googledrive.GoogleDriveFactory;
+import sciuto.corey.alerter.drive.DriveClient;
+import sciuto.corey.alerter.drive.IDriveWrapper;
+import sciuto.corey.alerter.drive.google.GoogleDriveFactory;
 import sciuto.corey.alerter.mail.MessageParser;
 import sciuto.corey.alerter.mail.MessageRetriever;
 import sciuto.corey.alerter.mail.ProcessedMessage;
-
-import com.google.api.services.drive.Drive;
 
 /**
  * This is the main execution thread.
@@ -43,14 +42,15 @@ public class ProcessingRunnable implements Runnable {
 	private final static Logger LOGGER = LogManager.getLogger();
 
 	private Properties applicationProperties;
-	private GoogleDriveClient googleDriveClient;
+	private DriveClient googleDriveClient;
+	private String rootDirectoryId;
 
 	private static final long MINUTE = 1000L * 60l; // 1000 milliseconds x 60
 													// seconds
 
 	public ProcessingRunnable(Properties applicationProperties) {
 		this.applicationProperties = applicationProperties;
-		configureDrive(applicationProperties);
+		this.rootDirectoryId = configureDrive(applicationProperties);
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class ProcessingRunnable implements Runnable {
 
 			List<ProcessedMessage> messages = getMessages();
 			try {
-				googleDriveClient.uploadMessages(messages);
+				googleDriveClient.uploadMessages(messages, rootDirectoryId);
 			} catch (IOException e1) {
 				LOGGER.error("Couldn't upload messages!",e1);
 			}
@@ -80,34 +80,27 @@ public class ProcessingRunnable implements Runnable {
 	 * Configures the internal instance of the Google Drive client at startup.
 	 * 
 	 * @param applicationProperties
+	 * @return The ID of the root directory.
 	 */
-	private void configureDrive(Properties applicationProperties) {
-		GoogleDriveFactory googleDriveFactory = null;
-		try {
-			googleDriveFactory = new GoogleDriveFactory();
-		} catch (GeneralSecurityException e) {
-			LOGGER.error("Error creating Google Drive instance. Exiting...", e);
-			System.exit(200);
-		} catch (IOException e) {
-			LOGGER.error("Error creating Google Drive instance. Exiting...", e);
-			System.exit(201);
-		}
+	private String configureDrive(Properties applicationProperties) {
 	
 		String secretsLocation = applicationProperties.getProperty("drive.secrets.location");
 		try {
-			Drive googleDrive = googleDriveFactory.createDrive(secretsLocation);
-			googleDriveClient = new GoogleDriveClient(googleDrive);
-		} catch (IOException e) {
+			IDriveWrapper googleDrive = GoogleDriveFactory.createDrive(secretsLocation);
+			googleDriveClient = new DriveClient(googleDrive);
+		} catch (IOException | GeneralSecurityException e) {
 			LOGGER.error("Error creating Google Drive instance. Exiting...", e);
 			System.exit(202);
 		}
 	
 		try {
-			googleDriveClient.createRootFolder();
+			return googleDriveClient.createRootFolder();
 		} catch (IOException e) {
 			LOGGER.error("Error creating Google Drive root folder. Exiting...",e);
 			System.exit(203);
 		}
+		
+		return null; // You can't actually get here...
 	}
 
 	/**

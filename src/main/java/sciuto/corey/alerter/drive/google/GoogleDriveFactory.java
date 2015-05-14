@@ -1,11 +1,4 @@
 /*
- * Borrows liberally from a sample at 
- * https://github.com/google/google-api-java-client-samples/blob/master/
- * drive-cmdline-sample/src/main/java/com/google/api/services/samples/drive/cmdline/DriveSample.java
- * Copyright (c) 2012 Google Inc.
- * 
- * Original author rmistry@google.com (Ravi Mistry)
- *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
  *
@@ -16,13 +9,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package sciuto.corey.alerter.googledrive;
+package sciuto.corey.alerter.drive.google;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
+
+import sciuto.corey.alerter.drive.IDriveWrapper;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -39,32 +34,12 @@ import com.google.api.services.drive.DriveScopes;
 
 /**
  * 
- * Creates connections to Google Drive
+ * Creates a Google Drive client
  * 
- * @author rmistry@google.com (Ravi Mistry)
  * @author Corey
  * 
  */
 public class GoogleDriveFactory {
-
-	private static FileDataStoreFactory dataStoreFactory;
-	private static HttpTransport httpTransport;
-	private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-
-	/**
-	 * Authorizes the installed application to access user's protected data.
-	 * 
-	 * @throws IOException
-	 * */
-	private static Credential authorize(String secretsLocation) throws IOException {
-
-		GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new FileReader(secretsLocation));
-		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport, JSON_FACTORY,
-				clientSecrets, Collections.singleton(DriveScopes.DRIVE_FILE)).setDataStoreFactory(dataStoreFactory)
-				.build();
-
-		return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
-	}
 
 	/**
 	 * Creates the Google Drive client. Pass in the pointer to
@@ -75,19 +50,26 @@ public class GoogleDriveFactory {
 	 * @param secretsLocation
 	 * @return
 	 * @throws IOException
+	 * @throws GeneralSecurityException 
 	 */
-	public Drive createDrive(String secretsLocation) throws IOException {
-		Credential credential = authorize(secretsLocation);
-		Drive drive = new Drive.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(
-				"CoreySciuto-Alerter/0.1").build();
-		return drive;
-	}
-
-	public GoogleDriveFactory() throws GeneralSecurityException, IOException {
-		httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-
+	public static IDriveWrapper createDrive(String secretsLocation) throws IOException, GeneralSecurityException {
+		
+		HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 		File dataStoreDirectory = new File("dataStore/");
 		dataStoreDirectory.mkdir();
-		dataStoreFactory = new FileDataStoreFactory(dataStoreDirectory);
+		FileDataStoreFactory dataStoreFactory = new FileDataStoreFactory(dataStoreDirectory);
+		JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+		
+		GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, new FileReader(secretsLocation));
+		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport, jsonFactory,
+				clientSecrets, Collections.singleton(DriveScopes.DRIVE_FILE)).setDataStoreFactory(dataStoreFactory)
+				.build();
+	
+		Credential credential = new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
+		
+		Drive drive = new Drive.Builder(httpTransport, jsonFactory, credential).setApplicationName(
+				"CoreySciuto-Alerter/0.1").build();
+		return new GoogleDriveWrapper(drive);
 	}
+
 }
