@@ -25,7 +25,7 @@ import sciuto.corey.alerter.model.ProcessedMessage;
 /**
  * A client around an abstract Drive class.
  * 
- * @author Corey
+ * @author Corey Sciuto <corey.sciuto@gmail.com>
  * 
  */
 public class DriveClient {

@@ -26,7 +26,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * Retrieves Messages from an inbox.
  * 
- * @author Corey
+ * @author Corey Sciuto <corey.sciuto@gmail.com>
  * 
  */
 public class MessageRetriever {

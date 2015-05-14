@@ -35,7 +35,7 @@ import sciuto.corey.alerter.model.ProcessedMessage;
 /**
  * This is the main execution thread.
  * 
- * @author Corey
+ * @author Corey Sciuto <corey.sciuto@gmail.com>
  * 
  */
 public class ProcessingRunnable implements Runnable {

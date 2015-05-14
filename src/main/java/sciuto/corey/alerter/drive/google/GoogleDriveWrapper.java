@@ -26,7 +26,7 @@ import com.google.api.services.drive.model.ParentReference;
  * A class to de-couple Google Drive from the classes that use it to simplify
  * unit testing.
  * 
- * @author Corey
+ * @author Corey Sciuto <corey.sciuto@gmail.com>
  * 
  */
 public class GoogleDriveWrapper implements IDriveWrapper {

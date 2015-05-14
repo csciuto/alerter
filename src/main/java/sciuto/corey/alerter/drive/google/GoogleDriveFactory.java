@@ -36,7 +36,7 @@ import com.google.api.services.drive.DriveScopes;
  * 
  * Creates a Google Drive client
  * 
- * @author Corey
+ * @author Corey Sciuto <corey.sciuto@gmail.com>
  * 
  */
 public class GoogleDriveFactory {

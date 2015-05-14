@@ -31,7 +31,7 @@ import sciuto.corey.alerter.model.ProcessedMessage;
 
 /**
  * Extracts the Message Subject, Body, and attachments (PDF only) from Messages and stores them locally.
- * @author Corey
+ * @author Corey Sciuto <corey.sciuto@gmail.com>
  *
  */
 public class MessageParser {

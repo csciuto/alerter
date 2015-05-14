@@ -19,7 +19,7 @@ import sciuto.corey.alerter.model.ProcessedMessage;
 
 /**
  * An interface specifying operations on a cloud drive service.
- * @author Corey
+ * @author Corey Sciuto <corey.sciuto@gmail.com>
  *
  */
 public interface IDriveWrapper {

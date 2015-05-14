@@ -20,7 +20,7 @@ import javax.mail.PasswordAuthentication;
 
 /**
  * Yeah I know this is bad practice...override if you'd like.
- * @author Corey Sciuto
+ * @author Corey Sciuto <corey.sciuto@gmail.com> Sciuto
  *
  */
 public class PropertiesFileAuthenticator extends Authenticator {
