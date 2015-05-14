@@ -24,27 +24,29 @@ import sciuto.corey.alerter.model.ProcessedMessage;
 
 /**
  * A client around an abstract Drive class.
+ * 
  * @author Corey
- *
+ * 
  */
 public class DriveClient {
 
 	private final static Logger LOGGER = LogManager.getLogger();
-	
+
 	private IDriveWrapper drive;
-	
+
 	public DriveClient(IDriveWrapper googleDrive) {
-		this.drive = googleDrive; 
+		this.drive = googleDrive;
 	}
-	
+
 	/**
 	 * Creates a directory called at the root of the hierarchy.
+	 * 
 	 * @param name
 	 * @throws IOException
 	 * @return An ID for the created directory.
 	 */
 	public String createRootFolder(String name) throws IOException {
-		
+
 		LOGGER.debug("Looking for Root Directory " + name);
 		String id = drive.locateRootDirectory(name);
 
@@ -52,44 +54,44 @@ public class DriveClient {
 			LOGGER.debug("Not found. Creating " + name);
 			id = drive.createRootDirectory(name);
 		}
-		
+
 		LOGGER.debug("Root Drive Folder ID: " + id);
 		return id;
-		
+
 	}
 
 	/**
-	 * Uploads the ProcessedMessages to Google Drive. Creates a directory with the message's subject as a name, and uploads all files to it.
+	 * Uploads the ProcessedMessages to Google Drive. Creates a directory with
+	 * the message's subject as a name, and uploads all files to it.
+	 * 
 	 * @param messages
 	 * @param rootDirectoryId
 	 * @throws IOException
 	 */
 	public void uploadMessages(List<ProcessedMessage> messages, String rootDirectoryId) throws IOException {
-		
+
 		for (ProcessedMessage message : messages) {
-			
+
 			LOGGER.info("Uploading message " + message.getSubject());
 			LOGGER.debug("Creating message folder " + message.getSubject());
-			String messageDirectoryId = drive.createSubdirectory(message,rootDirectoryId);
+			String messageDirectoryId = drive.createSubdirectory(message, rootDirectoryId);
 			LOGGER.debug("...done");
-			
+
 			if (message.getMessageBodyFileName() != null) {
 				LOGGER.debug("Creating message body file " + message.getMessageBodyFileName());
 				drive.createFile(messageDirectoryId, message.getMessageBodyFileName(), "text/plain");
-			    LOGGER.debug("...done");
+				LOGGER.debug("...done");
 			}
-		    
-		    List<Attachment> attachments = message.getAttachments();
-		    if (attachments != null){
-		    	for (Attachment attachment : attachments) {
-		    		LOGGER.debug("Creating attachment " + attachment.getFileLocation());
-		    		drive.createFile(messageDirectoryId, attachment.getFileLocation(), attachment.getMimeType());
-		    		LOGGER.debug("...done");
-		    	}
-		    }
-		    LOGGER.info("Uploaded.");
+
+			List<Attachment> attachments = message.getAttachments();
+			for (Attachment attachment : attachments) {
+				LOGGER.debug("Creating attachment " + attachment.getFileLocation());
+				drive.createFile(messageDirectoryId, attachment.getFileLocation(), attachment.getMimeType());
+				LOGGER.debug("...done");
+			}
+			LOGGER.info("Uploaded.");
 		}
-		
+
 	}
-	
+
 }

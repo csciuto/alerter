@@ -91,7 +91,7 @@ public class MessageParser {
 			
 			processedMessage.setMessageBodyFileName(fileName);
 			
-			processedMessage.setSubject(message.getSubject());
+			processedMessage.setSubject(MailUtils.cleanSubject(message.getSubject()));
 			return processedMessage;
 		} catch (IOException e) {
 			LOGGER.error("Error getting message content:", e);
@@ -165,7 +165,7 @@ public class MessageParser {
 				}
 			}
 
-			processedMessage.setSubject(message.getSubject());
+			processedMessage.setSubject(MailUtils.cleanSubject(message.getSubject()));
 			return processedMessage;
 
 		} catch (IOException e) {

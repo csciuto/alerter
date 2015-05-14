@@ -94,7 +94,7 @@ public class ProcessingRunnable implements Runnable {
 		}
 	
 		try {
-			return googleDriveClient.createRootFolder("alerts");
+			return googleDriveClient.createRootFolder("alerts2");
 		} catch (IOException e) {
 			LOGGER.error("Error creating Google Drive root folder. Exiting...",e);
 			System.exit(203);

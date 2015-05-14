@@ -50,14 +50,9 @@ public class MessageRetriever {
 	public MessageRetriever(Properties properties) {
 		this.authenticator = new PropertiesFileAuthenticator(properties);
 		this.properties = properties;
-		this.whitelist = new ArrayList<String>();
 
-		String whitelistString = this.properties.getProperty("mail.whitelist");
-		String[] tokens = whitelistString.split("--delim--");
-
-		for (int i = 0; i < tokens.length; i++) {
-			whitelist.add(tokens[i]);
-		}
+		String whiteListString = this.properties.getProperty("mail.whitelist");
+		this.whitelist = MailUtils.parseWhiteList(whiteListString, "--delim--");
 	}
 
 	/**
@@ -108,7 +103,7 @@ public class MessageRetriever {
 
 				LOGGER.debug("Found unread message " + message.getSubject());
 
-				boolean validSender = validateSender(message);
+				boolean validSender = MailUtils.validateSender(message.getFrom(),whitelist);
 
 				if (validSender == true) {
 					unreadMessages.add(message);
@@ -121,35 +116,5 @@ public class MessageRetriever {
 		}
 
 		return unreadMessages;
-	}
-
-	/**
-	 * XXX: Security by obscurity is NOT security. Without requiring this
-	 * application only accepts signed emails, I'm not sure what else can be
-	 * done...
-	 * 
-	 * @param message
-	 * @return
-	 * @throws MessagingException
-	 */
-	private boolean validateSender(Message message) throws MessagingException {
-		Address[] fromAddresses = message.getFrom();
-		boolean validSender = false;
-
-		for (int j = 0; j < fromAddresses.length; j++) {
-			Address address = fromAddresses[j];
-
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Validating " + address.toString() + " against whitelist...");
-			}
-
-			if (whitelist.contains(address.toString())) {
-				validSender = true;
-				LOGGER.debug("Validated.");
-				break;
-			}
-		}
-
-		return validSender;
 	}
 }
