@@ -38,18 +38,19 @@ public class DriveClient {
 	}
 	
 	/**
-	 * Creates a directory called "alerts" at the root of the hierarchy.
+	 * Creates a directory called at the root of the hierarchy.
+	 * @param name
 	 * @throws IOException
 	 * @return An ID for the created directory.
 	 */
-	public String createRootFolder() throws IOException {
+	public String createRootFolder(String name) throws IOException {
 		
-		LOGGER.debug("Looking for Root Directory...");
-		String id = drive.locateRootDirectory("alerts2");
+		LOGGER.debug("Looking for Root Directory " + name);
+		String id = drive.locateRootDirectory(name);
 
 		if (id == null) {
-			LOGGER.debug("Not found. Creating...");
-			id = drive.createRootDirectory("alerts2");
+			LOGGER.debug("Not found. Creating " + name);
+			id = drive.createRootDirectory(name);
 		}
 		
 		LOGGER.debug("Root Drive Folder ID: " + id);
@@ -67,6 +68,7 @@ public class DriveClient {
 		
 		for (ProcessedMessage message : messages) {
 			
+			LOGGER.info("Uploading message " + message.getSubject());
 			LOGGER.debug("Creating message folder " + message.getSubject());
 			String messageDirectoryId = drive.createSubdirectory(message,rootDirectoryId);
 			LOGGER.debug("...done");
@@ -85,7 +87,7 @@ public class DriveClient {
 		    		LOGGER.debug("...done");
 		    	}
 		    }
-			
+		    LOGGER.info("Uploaded.");
 		}
 		
 	}
