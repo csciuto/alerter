@@ -9,5 +9,5 @@
 === TODO ===
 
 * Simply checking if an email is from a known sender is vulnerable to spoofing, which would be really bad. Something needs to be done here.
-* Similarly, there should be a poison pill or other kill switch.
 * The mail packages need much better unit testing. This would involve doing what was done with Drive and abstracting out the particular implentation, in this case, JavaMail.
+* If an upload fails, the email is already marked read. It might be a good idea to change this code. However, since the act of simply processing an email marks it read, it would be a rollback operation.

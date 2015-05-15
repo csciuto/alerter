@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 
@@ -38,45 +39,35 @@ import sciuto.corey.alerter.model.ProcessedMessage;
  * @author Corey Sciuto <corey.sciuto@gmail.com>
  * 
  */
-public class ProcessingRunnable implements Runnable {
+public class MessageProcessor implements Runnable {
 
 	private final static Logger LOGGER = LogManager.getLogger();
 
 	private Properties applicationProperties;
+	private MessageParser messageParser;
 	private DriveClient googleDriveClient;
 	private String rootDirectoryId;
 
-	private static final long MINUTE = 1000L * 60l; // 1000 milliseconds x 60
-													// seconds
-
-	public ProcessingRunnable(Properties applicationProperties) {
+	public MessageProcessor(Properties applicationProperties) {
 		this.applicationProperties = applicationProperties;
 		this.rootDirectoryId = configureDrive(applicationProperties);
+		this.messageParser = new MessageParser(applicationProperties);
 	}
 
 	@Override
 	public void run() {
-		boolean running = true;
-		while (running) {
-			LOGGER.info("Running...");
+		LOGGER.info("Running...");
 
-			try {
-				List<ProcessedMessage> messages = getMessages();
-				if (messages != null && messages.size() > 0) {
-					googleDriveClient.uploadMessages(messages, rootDirectoryId);
-				}
-			} catch (Exception e1) {
-				LOGGER.error("Couldn't upload messages!", e1);
+		try {
+			List<ProcessedMessage> messages = getMessages();
+			if (messages != null && messages.size() > 0) {
+				googleDriveClient.uploadMessages(messages, rootDirectoryId);
 			}
-
-			LOGGER.info("...Sleeping...");
-			try {
-				Thread.sleep(5 * MINUTE);
-			} catch (InterruptedException e) {
-				LOGGER.warn("Thread interrupted. Ending execution", e);
-				running = false;
-			}
+		} catch (IOException e1) {
+			LOGGER.error("Couldn't upload messages!", e1);
 		}
+
+		LOGGER.info("...Done.");
 	}
 
 	/**
@@ -119,19 +110,18 @@ public class ProcessingRunnable implements Runnable {
 
 		MessageRetriever messageRetriever = new MessageRetriever(applicationProperties);
 
+		Folder inboxFolder = null;
 		try {
-			messageRetriever.openFolder();
+			inboxFolder = messageRetriever.openFolder();
 		} catch (MessagingException e) {
 			LOGGER.error("Could not open folder!", e);
 			return null;
 		}
-
 		try {
-			List<Message> messages = messageRetriever.retrieveUnreadMessages();
+			List<Message> messages = messageRetriever.retrieveUnreadMessages(inboxFolder);
 			LOGGER.info("There are " + messages.size() + " unread messages.");
 
 			if (messages.size() > 0) {
-				MessageParser messageParser = new MessageParser();
 				processedMessages = messageParser.extractMessages(messages);
 			} else {
 				processedMessages = new ArrayList<ProcessedMessage>();
@@ -139,9 +129,8 @@ public class ProcessingRunnable implements Runnable {
 		} catch (MessagingException e) {
 			LOGGER.error("Error retrieving messages!", e);
 		}
-
 		try {
-			messageRetriever.closeFolder();
+			messageRetriever.closeFolder(inboxFolder);
 		} catch (MessagingException e) {
 			LOGGER.error("Could not close folder!", e);
 			return null;

@@ -18,7 +18,6 @@ import java.util.Properties;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class App {
 	private final static Logger LOGGER;
 	static {
@@ -27,6 +26,9 @@ public class App {
 		System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
 		LOGGER = LogManager.getLogger();
 	}
+
+	private static final long MINUTE = 1000L * 60l; // 1000 milliseconds x 60
+													// seconds
 
 	public static void main(String[] args) {
 		LOGGER.info("Starting application...");
@@ -42,15 +44,20 @@ public class App {
 			System.exit(2);
 		}
 
-		Thread processingThread = new Thread(new ProcessingRunnable(applicationProperties), "ProcessingThread");
-		processingThread.start();
-		
-		try {
-			processingThread.join();
-		} catch (InterruptedException e) {
-			LOGGER.warn("Thread interrupted.",e);
+		MessageProcessor messageProcessor = new MessageProcessor(applicationProperties);
+		boolean running = true;
+		while (running) {
+			try {
+				Thread processingThread = new Thread(messageProcessor, "ProcessingThread");
+				processingThread.start();
+				processingThread.join();
+				Thread.sleep(5 * MINUTE);
+			} catch (InterruptedException e) {
+				LOGGER.warn("Thread interrupted.", e);
+				running = false;
+			}
 		}
-		
+
 		LOGGER.info("Shutdown.");
 	}
 }

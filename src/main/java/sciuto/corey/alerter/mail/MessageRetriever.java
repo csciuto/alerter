@@ -17,8 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import javax.mail.*;
 import javax.mail.Flags.Flag;
+import javax.mail.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,10 +35,6 @@ public class MessageRetriever {
 
 	private PropertiesFileAuthenticator authenticator;
 	private Properties properties;
-
-	private Session mailSession;
-	private Store store;
-	private Folder inboxFolder;
 
 	private List<String> whitelist;
 
@@ -58,15 +54,18 @@ public class MessageRetriever {
 	/**
 	 * Call this to open the folder.
 	 * 
+	 * @return The open folder
 	 * @throws MessagingException
 	 */
-	public void openFolder() throws MessagingException {
-		mailSession = Session.getInstance(properties, authenticator);
-		store = mailSession.getStore();
+	public Folder openFolder() throws MessagingException {
+		Session mailSession = Session.getInstance(properties, authenticator);
+		Store store = mailSession.getStore();
 		store.connect();
-
-		inboxFolder = store.getFolder("INBOX");
+	
+		Folder inboxFolder = store.getFolder("INBOX");
 		inboxFolder.open(Folder.READ_WRITE);
+	
+		return inboxFolder;
 	}
 
 	/**
@@ -74,8 +73,10 @@ public class MessageRetriever {
 	 * 
 	 * @throws MessagingException
 	 */
-	public void closeFolder() throws MessagingException {
+	public void closeFolder(Folder inboxFolder) throws MessagingException {
 		inboxFolder.close(false);
+	
+		Store store = inboxFolder.getStore();
 		store.close();
 	}
 
@@ -86,12 +87,12 @@ public class MessageRetriever {
 	 * @return
 	 * @throws MessagingException
 	 */
-	public List<Message> retrieveUnreadMessages() throws MessagingException {
+	public List<Message> retrieveUnreadMessages(Folder inboxFolder) throws MessagingException {
 
-		if (inboxFolder == null) {
-			throw new IllegalStateException("Must call openFolder before retrieving messages");
+		if (!inboxFolder.isOpen()) {
+			inboxFolder.open(Folder.READ_WRITE);
 		}
-
+		
 		List<Message> unreadMessages = new ArrayList<Message>();
 		int messageCount = inboxFolder.getMessageCount();
 
@@ -103,7 +104,7 @@ public class MessageRetriever {
 
 				LOGGER.debug("Found unread message " + message.getSubject());
 
-				boolean validSender = MailUtils.validateSender(message.getFrom(),whitelist);
+				boolean validSender = MailUtils.validateSender(message.getFrom(), whitelist);
 
 				if (validSender == true) {
 					unreadMessages.add(message);

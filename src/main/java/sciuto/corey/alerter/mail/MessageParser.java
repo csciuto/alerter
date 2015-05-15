@@ -18,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
 
 import javax.mail.*;
@@ -37,7 +38,13 @@ import sciuto.corey.alerter.model.ProcessedMessage;
 public class MessageParser {
 
 	private static final Logger LOGGER = LogManager.getLogger();
-
+	private String stopCode;
+	
+	public MessageParser(Properties applicationProperties) {
+		stopCode = applicationProperties.getProperty("mail.stop.code");
+		LOGGER.info("Stop code is " + stopCode);
+	}
+	
 	public List<ProcessedMessage> extractMessages(List<Message> unreadMessages) throws MessagingException {
 
 		List<ProcessedMessage> processedMessages = new ArrayList<ProcessedMessage>();
@@ -47,6 +54,12 @@ public class MessageParser {
 			String messageSubject = message.getSubject();
 			LOGGER.info("Processing " + messageSubject + "...");
 
+			if (messageSubject.equals(stopCode)) {
+				LOGGER.warn("Poisoned. Shutting down...");
+				// Lazy, but just kill it.
+				System.exit(400);
+			}
+			
 			String contentType = message.getContentType();
 			LOGGER.debug("Content type: " + contentType);
 
