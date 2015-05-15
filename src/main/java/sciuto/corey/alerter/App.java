@@ -18,7 +18,6 @@ import java.util.Properties;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import sciuto.corey.alerter.util.PropertiesReader;
 
 public class App {
 	private final static Logger LOGGER;

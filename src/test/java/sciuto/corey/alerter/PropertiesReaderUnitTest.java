@@ -1,10 +1,12 @@
-package sciuto.corey.alerter.util;
+package sciuto.corey.alerter;
 
 import java.util.Properties;
 
 import junit.framework.Assert;
 
 import org.junit.Test;
+
+import sciuto.corey.alerter.PropertiesReader;
 
 public class PropertiesReaderUnitTest {
 
