@@ -118,4 +118,20 @@ public class MessageRetriever {
 
 		return unreadMessages;
 	}
+
+	public List<String> getWhitelist() {
+		return whitelist;
+	}
+
+	public void setWhitelist(List<String> whitelist) {
+		this.whitelist = whitelist;
+	}
+
+	public PropertiesFileAuthenticator getAuthenticator() {
+		return authenticator;
+	}
+
+	public void setAuthenticator(PropertiesFileAuthenticator authenticator) {
+		this.authenticator = authenticator;
+	}
 }
