@@ -228,4 +228,12 @@ public class MessageParser {
 		
 		return directory;
 	}
+
+	public String getStopCode() {
+		return stopCode;
+	}
+
+	public void setStopCode(String stopCode) {
+		this.stopCode = stopCode;
+	}
 }
