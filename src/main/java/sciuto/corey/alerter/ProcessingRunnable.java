@@ -27,7 +27,7 @@ import org.apache.logging.log4j.Logger;
 
 import sciuto.corey.alerter.drive.DriveClient;
 import sciuto.corey.alerter.drive.IDriveWrapper;
-import sciuto.corey.alerter.drive.google.GoogleDriveFactory;
+import sciuto.corey.alerter.drive.google.GoogleDriveWrapper;
 import sciuto.corey.alerter.mail.MessageParser;
 import sciuto.corey.alerter.mail.MessageRetriever;
 import sciuto.corey.alerter.model.ProcessedMessage;
@@ -89,7 +89,7 @@ public class ProcessingRunnable implements Runnable {
 
 		String secretsLocation = applicationProperties.getProperty("drive.secrets.location");
 		try {
-			IDriveWrapper googleDrive = GoogleDriveFactory.createDrive(secretsLocation);
+			IDriveWrapper googleDrive = new GoogleDriveWrapper(secretsLocation);
 			googleDriveClient = new DriveClient(googleDrive);
 		} catch (IOException | GeneralSecurityException e) {
 			LOGGER.error("Error creating Google Drive instance. Exiting...", e);
@@ -97,7 +97,7 @@ public class ProcessingRunnable implements Runnable {
 		}
 
 		try {
-			return googleDriveClient.createRootFolder("alerts");
+			return googleDriveClient.createRootFolder(applicationProperties.getProperty("drive.root.directory"));
 		} catch (IOException e) {
 			LOGGER.error("Error creating Google Drive root folder. Exiting...", e);
 			System.exit(203);
