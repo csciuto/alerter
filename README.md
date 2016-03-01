@@ -1,3 +1,6 @@
+This (pretty much toy) application listens to a configured mailbox, downloads any attachments in the email, and uploads them to Google Drive.
+I wrote it to solve a problem where I was getting a very large volume of PDF attachments in email I was supposed to be sharing out on social media.
+
 === INSTRUCTIONS ===
 
 1. Copy alerter-template.properties and fill in the values there.
