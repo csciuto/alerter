@@ -1,5 +1,5 @@
 This (pretty much toy) application listens to a configured mailbox, downloads any attachments in the email, and uploads them to Google Drive.
-I wrote it to solve a problem where I was getting a very large volume of PDF attachments in email I was supposed to be sharing out on social media.
+I wrote it to solve a problem where I was getting a very large volume of PDF attachments in email I was supposed to be sharing out on social media. However, it didn't prove to really save me that much time because it's not fully automated so I never really used it much.
 
 ###INSTRUCTIONS
 
